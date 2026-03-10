@@ -5,6 +5,7 @@
 запустите Git Bash
 перейдите в каталог c:/xampp/htdocs
 > cd c:/xampp/htdocs
+Удалите все файлы и папки в htdocs
 
 Fork репозитория Coopteh/pizza231
 - Войдите в свой аккаунт на github.com и сделайте fork
@@ -24,12 +25,14 @@ Fork репозитория Coopteh/pizza231
 выполните в bash терминале
 > git pull
 ```
+Выполните работу по курсу "Разработка кода".
+
 Закоммитьте и запуште изменения
 ```
 > git status
 > git add .
 > git status
-> git commit -m "Подготовка рабочего окружения"
+> git commit -m "Шаблон базовой страницы"
 > git push
 ```
 Сдайте работу - создав запрос на изменения Pull Request  

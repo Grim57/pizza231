@@ -1,36 +1,21 @@
 <?php
 namespace App\Models;
 
-use App\Configs\Config;
+use App\Config\Config;
 
-class Product
-{
-    // Существующий метод для загрузки всех данных
+class Product {
+    /* открывает файл с именем Config::FILE_PRODUCTS в режиме чтения ('r'), 
+    затем считывает все содержимое из него в переменную $data, 
+    закрывает файл, декодирует строку (формата json) в ассоциативный массив $arr
+    функцией json_decode($data, true); и возвращает получившийся массив $arr 
+    оператором return
+    */
     public function loadData(): ?array
     {
-        $file = Config::FILE_PRODUCTS;
-        if (!file_exists($file)) {
-            return null;
-        }
-        $data = file_get_contents($file);
-        return json_decode($data, true);
-    }
-
-    // НОВЫЙ МЕТОД: Получить все товары
-    public function getAllProducts(): array
-    {
-        $data = $this->loadData();
-        return $data ?? []; // Если данных нет, вернем пустой массив
-    }
-
-    // Метод для получения одного товара (уже был)
-    public function getProductById(int $id): ?array
-    {
-        $all = $this->getAllProducts();
-        foreach ($all as $item) {
-            if ($item['id'] == $id) {
-                return $item;
-            }
+        $data = file_get_contents(Config::FILE_PRODUCTS);
+        if ($data) {
+            $arr = json_decode($data, true);
+            return $arr;
         }
         return null;
     }

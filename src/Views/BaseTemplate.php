@@ -19,15 +19,18 @@ class BaseTemplate {
                     <a class="navbar-brand" href="#">
                     <img src="/../../asserts/img/logo.jpg" alt="Logo" width="52" height="52" class="d-inline-block align-text-top">
                     </a>
-                    <a class="navbar-brand logo-font" href="#">Тур агенство</a>                    
+                    <a class="navbar-brand logo-font" href="#">Пиццерия ИС-231</a>                    
                     <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="/">Администратум</a>
+                            <a class="nav-link active" aria-current="page" href="/">Главная</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link active" aria-current="page" href="/about">О нас</a>
-                        </li>                        
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="/products">Каталог</a>
+                        </li>
                     </ul>
                     </div>
                 </div>

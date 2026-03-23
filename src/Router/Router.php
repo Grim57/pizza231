@@ -4,6 +4,7 @@ namespace App\Router;
 use App\Controllers\AboutController;
 use App\Controllers\HomeController;
 use App\Controllers\ProductController;
+use App\Controllers\BasketController; 
 
 class Router {
     public function route(string $url): string {
@@ -21,6 +22,13 @@ class Router {
             default:
                 $home = new HomeController();
                 return $home->get();
+            case "basket":
+            $basketController = new BasketController();
+            $basketController->add();
+            // Возвращаем пользователя на предыдущую страницу
+            $prevUrl = $_SERVER['HTTP_REFERER'];
+            header("Location: {$prevUrl}");
+            exit();    
         }
     }
 }

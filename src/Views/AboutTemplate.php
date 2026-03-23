@@ -8,7 +8,7 @@ class AboutTemplate extends BaseTemplate {
         $content = <<<LINE2
         <main class="row">
             <div class="mt-5">
-                <p>Наша пиццерия находится на территории "Кемеровского кооперативного техникума"</p>
+                <p>Наше здание находится на территории "Кемеровского кооперативного техникума"</p>
                 <p><img class="h-50 w-50" src="/../../asserts/img/map-ya.png"></p>
             </div>
         </main> 

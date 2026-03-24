@@ -9,7 +9,7 @@ class AboutTemplate extends BaseTemplate {
         <main class="row">
             <div class="mt-5">
                 <p>Наше здание находится на территории "Кемеровского кооперативного техникума"</p>
-                <p><img class="h-50 w-50" src="/../../asserts/img/map-ya.png"></p>
+                <p><img class="h-50 w-70" src="/../../asserts/img/map-ya.png"></p>
             </div>
         </main> 
         LINE2;

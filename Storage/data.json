@@ -2,15 +2,15 @@
   {
     "id": 1,
     "name": "Первый тур",
-    "image": "./assets/images/image1.png",
+    "image": "./asserts/img/image1.png",
     "description": "бла бла бла",
-    "price": 550
+    "price": 10550
   },
   {
     "id": 2,
     "name": "Второй тур",
-    "image": "./assets/images/image2.png",
+    "image": "./asserts/img/image2.png",
     "description": "бла бла бла",
-    "price": 450
+    "price": 10450
   }
 ]

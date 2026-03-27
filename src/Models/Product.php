@@ -63,4 +63,43 @@ class Product {
         
         return $basketProducts;
     }
+    
+    /**
+     * Сохраняет данные заказа в JSON-файл
+     * @param array $arr - массив с данными заказа
+     */
+    public function saveData(array $arr): void
+    {
+        $nameFile = Config::FILE_ORDERS;
+        
+        // Создаём папку storage, если её нет
+        $dir = dirname($nameFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        
+        // Читаем существующие заказы
+        $allRecords = [];
+        if (file_exists($nameFile) && filesize($nameFile) > 0) {
+            $handle = fopen($nameFile, "r");
+            if ($handle) {
+                $data = fread($handle, filesize($nameFile));
+                $allRecords = json_decode($data, true) ?? [];
+                fclose($handle);
+            }
+        }
+        
+        // Добавляем новый заказ
+        $allRecords[] = $arr;
+        
+        // Кодируем в JSON с поддержкой кириллицы и форматированием
+        $json = json_encode($allRecords, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        
+        // Записываем в файл
+        $handle = fopen($nameFile, "w");
+        if ($handle) {
+            fwrite($handle, $json);
+            fclose($handle);
+        }
+    }
 }

@@ -71,6 +71,30 @@ class OrderTemplate
             LINE;
         }
         
+        // === НОВАЯ ФОРМА ДОСТАВКИ ===
+        $content .= <<<LINE
+        <h3 class="mt-5 mb-3">Данные для доставки</h3>
+        <form action="/order" method="POST">
+            <div class="mb-3">
+                <label for="fio" class="form-label">Ваше ФИО:</label>
+                <input type="text" class="form-control" id="fio" name="fio" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="address" class="form-label">Адрес доставки:</label>
+                <input type="text" class="form-control" id="address" name="address" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="phone" class="form-label">Телефон:</label>
+                <input type="tel" class="form-control" id="phone" name="phone" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Создать заказ</button>
+        </form>
+        LINE;
+        // === КОНЕЦ ФОРМЫ ===
+        
         // Возвращаем через базовый шаблон
         $baseTemplate = BaseTemplate::getTemplate();
         return sprintf($baseTemplate, 'Заказ - Тур Агенство', $content);

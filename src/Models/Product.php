@@ -4,12 +4,10 @@ namespace App\Models;
 use App\Config\Config;
 
 class Product {
-    /* открывает файл с именем Config::FILE_PRODUCTS в режиме чтения ('r'), 
-    затем считывает все содержимое из него в переменную $data, 
-    закрывает файл, декодирует строку (формата json) в ассоциативный массив $arr
-    функцией json_decode($data, true); и возвращает получившийся массив $arr 
-    оператором return
-    */
+    
+    /**
+     * Загружает товары из JSON-файла
+     */
     public function loadData(): ?array
     {
         $data = file_get_contents(Config::FILE_PRODUCTS);
@@ -20,7 +18,9 @@ class Product {
         return null;
     }
 
-    // НОВЫЙ МЕТОД: возвращает товары из корзины
+    /**
+     * Возвращает товары из корзины с полными данными
+     */
     public function getBasketData(): array
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -42,15 +42,11 @@ class Product {
             $id = $product['id'];
 
             if (array_key_exists($id, $_SESSION['basket'])) {
-                // Количество берём из корзины
                 $quantity = $_SESSION['basket'][$id]['quantity'];
-
-                // Характеристики берём из товара
                 $name = $product['name'];
                 $price = $product['price'];
                 $sum = $price * $quantity;
 
-                // Формируем элемент для вывода
                 $basketProducts[] = [
                     'id' => $id,
                     'name' => $name,
@@ -65,20 +61,70 @@ class Product {
     }
     
     /**
+     * Подготавливает данные заказа для сохранения.
+     * Формирует массив с ключами 'fio', 'products', 'all_sum' и другими.
+     * 
+     * @param array $formData Данные из формы ($_POST)
+     * @param array $basketData Товары корзины
+     * @return array Массив готовых данных заказа
+     */
+    public function prepareData(array $formData, array $basketData): array
+    {
+        // Обработка данных формы для единообразия с OrderController
+        // Это "то, чего не хватало" для идеальной работы.
+        $safeFormData = [
+            'fio' => isset($formData['fio']) ? trim(urldecode($formData['fio'])) : '',
+            'phone' => isset($formData['phone']) ? trim($formData['phone']) : '',
+            'address' => isset($formData['address']) ? trim(urldecode($formData['address'])) : '',
+            'comment' => isset($formData['comment']) ? trim(urldecode($formData['comment'])) : '',
+        ];
+
+        $allSum = 0;
+        $items = [];
+
+        // Формируем список товаров и считаем общую сумму
+        foreach ($basketData as $item) {
+            $price = (float)($item['price'] ?? 0);
+            $quantity = (int)($item['quantity'] ?? 0);
+            
+            $itemSum = $price * $quantity;
+            $allSum += $itemSum;
+
+            $items[] = [
+                'id' => $item['id'] ?? null,
+                'name' => $item['name'] ?? '',
+                'price' => $price,
+                'quantity' => $quantity,
+                'sum' => $itemSum,
+            ];
+        }
+
+        // Собираем итоговый массив заказа в формате OrderController
+        return [
+            'order_id' => uniqid('ord_', true),
+             'fio' => $safeFormData['fio'],
+             'user_phone' => $safeFormData['phone'],
+             'user_address' => $safeFormData['address'],
+             'user_comment' => $safeFormData['comment'],
+             'products' => $items,
+             'all_sum' => $allSum,
+             'created_at' => date('Y-m-d H:i:s'),
+             'status' => 'new',
+        ];
+    }
+    
+    /**
      * Сохраняет данные заказа в JSON-файл
-     * @param array $arr - массив с данными заказа
      */
     public function saveData(array $arr): void
     {
         $nameFile = Config::FILE_ORDERS;
         
-        // Создаём папку storage, если её нет
         $dir = dirname($nameFile);
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
         
-        // Читаем существующие заказы
         $allRecords = [];
         if (file_exists($nameFile) && filesize($nameFile) > 0) {
             $handle = fopen($nameFile, "r");
@@ -89,13 +135,10 @@ class Product {
             }
         }
         
-        // Добавляем новый заказ
         $allRecords[] = $arr;
         
-        // Кодируем в JSON с поддержкой кириллицы и форматированием
         $json = json_encode($allRecords, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         
-        // Записываем в файл
         $handle = fopen($nameFile, "w");
         if ($handle) {
             fwrite($handle, $json);

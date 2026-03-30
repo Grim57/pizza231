@@ -81,11 +81,6 @@ class OrderTemplate
             </div>
             
             <div class="mb-3">
-                <label for="address" class="form-label">Адрес доставки:</label>
-                <input type="text" class="form-control" id="address" name="address" required>
-            </div>
-            
-            <div class="mb-3">
                 <label for="phone" class="form-label">Телефон:</label>
                 <input type="tel" class="form-control" id="phone" name="phone" required>
             </div>

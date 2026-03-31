@@ -37,7 +37,6 @@ class OrderTemplate
                 LINE;
             }
             
-            // Итоговая сумма
             $content .= <<<LINE
             <div class="row mt-4">
                 <div class="col-12 text-end">
@@ -46,7 +45,6 @@ class OrderTemplate
             </div>
             LINE;
             
-            // Кнопка очистки корзины
             $content .= <<<LINE
             <div class="row mt-3">
                 <div class="col-6"></div>
@@ -61,7 +59,6 @@ class OrderTemplate
             LINE;
             
         } else {
-            // Нет товаров в корзине
             $content .= <<<LINE
             <div class="row mt-4">
                 <div class="col-12">
@@ -71,26 +68,51 @@ class OrderTemplate
             LINE;
         }
         
-        // === НОВАЯ ФОРМА ДОСТАВКИ ===
+        // ✅ ПОДГОТОВКА значений ПЕРЕД heredoc
+        $fioValue = htmlspecialchars($_POST['fio'] ?? '');
+        $phoneValue = htmlspecialchars($_POST['phone'] ?? '');
+        $emailValue = htmlspecialchars($_POST['email'] ?? '');
+        $addressValue = htmlspecialchars($_POST['address'] ?? '');
+        
+        // === ФОРМА ДОСТАВКИ ===
         $content .= <<<LINE
         <h3 class="mt-5 mb-3">Данные для доставки</h3>
         <form action="/order" method="POST">
             <div class="mb-3">
-                <label for="fio" class="form-label">Ваше ФИО:</label>
-                <input type="text" class="form-control" id="fio" name="fio" required>
+                <label for="fio" class="form-label">Ваше ФИО <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="fio" name="fio" required value="{$fioValue}">
             </div>
             
             <div class="mb-3">
-                <label for="phone" class="form-label">Телефон:</label>
-                <input type="tel" class="form-control" id="phone" name="phone" required>
+                <label for="phone" class="form-label">Телефон <span class="text-danger">*</span></label>
+                <input type="tel" class="form-control" id="phone" name="phone" required value="{$phoneValue}">
             </div>
             
-            <button type="submit" class="btn btn-primary">Создать заказ</button>
+            <!-- Поле Email -->
+            <div class="mb-3">
+                <label for="email" class="form-label">
+                    Email <span class="text-danger">*</span>
+                </label>
+                <input type="email" class="form-control" id="email" name="email" 
+                       placeholder="client@example.com" required value="{$emailValue}">
+                <div class="form-text">
+                    <i class="bi bi-envelope me-1"></i>
+                    На этот адрес придёт подтверждение заказа
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="address" class="form-label">Адрес доставки</label>
+                <textarea class="form-control" id="address" name="address" rows="3" 
+                          placeholder="г. Кемерово, ул. Примерная, д. 1">{$addressValue}</textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-cart-check me-2"></i>Создать заказ
+            </button>
         </form>
         LINE;
-        // === КОНЕЦ ФОРМЫ ===
         
-        // Возвращаем через базовый шаблон
         $baseTemplate = BaseTemplate::getTemplate();
         return sprintf($baseTemplate, 'Заказ - Тур Агенство', $content);
     }

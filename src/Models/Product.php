@@ -1,25 +1,29 @@
 <?php
 namespace App\Models;
-
 use App\Config\Config;
+use App\Services\IStorage;
 
 class Product {
+    private IStorage $dataStorage;
+    private string $nameResource;
     
+    // Внедрение зависимости через конструктор (Dependency Injection)
+    public function __construct(IStorage $service, string $name)
+    {
+        $this->dataStorage = $service;
+        $this->nameResource = $name;
+    }
+ 
     /**
-     * Загружает товары из JSON-файла
+     * Загружает товары из хранилища.
      */
     public function loadData(): ?array
     {
-        $data = file_get_contents(Config::FILE_PRODUCTS);
-        if ($data) {
-            $arr = json_decode($data, true);
-            return $arr;
-        }
-        return null;
+        return $this->dataStorage->loadData($this->nameResource);
     }
-
+    
     /**
-     * Возвращает товары из корзины с полными данными
+     * Возвращает товары из корзины с полными данными.
      */
     public function getBasketData(): array
     {
@@ -62,11 +66,6 @@ class Product {
     
     /**
      * Подготавливает данные заказа для сохранения.
-     * Формирует массив с ключами 'fio', 'products', 'all_sum' и другими.
-     * 
-     * @param array $formData Данные из формы ($_POST)
-     * @param array $basketData Товары корзины
-     * @return array Массив готовых данных заказа
      */
     public function prepareData(array $formData, array $basketData): array
     {
@@ -82,7 +81,6 @@ class Product {
         $allSum = 0;
         $items = [];
 
-        // Формируем список товаров и считаем общую сумму
         foreach ($basketData as $item) {
             $price = (float)($item['price'] ?? 0);
             $quantity = (int)($item['quantity'] ?? 0);
@@ -99,7 +97,6 @@ class Product {
             ];
         }
 
-        // Собираем итоговый массив заказа в формате OrderController
         return [
             'order_id' => uniqid('ord_', true),
              'fio' => $safeFormData['fio'],
@@ -107,42 +104,17 @@ class Product {
              'user_address' => $safeFormData['address'],
              'user_comment' => $safeFormData['comment'],
              'products' => $items,
-             'all_sum' => $allSum,
+             'all_sum' => round($allSum, 2),
              'created_at' => date('Y-m-d H:i:s'),
              'status' => 'new',
         ];
     }
     
     /**
-     * Сохраняет данные заказа в JSON-файл
+     * Сохраняет данные заказа в хранилище.
      */
-    public function saveData(array $arr): void
+    public function saveData(array $arr): bool // Возвращаем bool для соответствия интерфейсу IStorage
     {
-        $nameFile = Config::FILE_ORDERS;
-        
-        $dir = dirname($nameFile);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
-        
-        $allRecords = [];
-        if (file_exists($nameFile) && filesize($nameFile) > 0) {
-            $handle = fopen($nameFile, "r");
-            if ($handle) {
-                $data = fread($handle, filesize($nameFile));
-                $allRecords = json_decode($data, true) ?? [];
-                fclose($handle);
-            }
-        }
-        
-        $allRecords[] = $arr;
-        
-        $json = json_encode($allRecords, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        
-        $handle = fopen($nameFile, "w");
-        if ($handle) {
-            fwrite($handle, $json);
-            fclose($handle);
-        }
+         return $this->dataStorage->saveData($this->nameResource, $arr);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Views;
 
 class OrderTemplate
@@ -6,14 +7,14 @@ class OrderTemplate
     public function getOrderTemplate(array $arr): string
     {
         $content = '';
-        
+
         // Заголовки страницы
         $content .= '<h1 class="mb-5">Создание заказа</h1>';
         $content .= '<h3>Корзина</h3>';
-        
+
         $all_sum = 0;
         $products = $arr;
-        
+
         if (count($products) > 0) {
             foreach ($products as $product) {
                 $name = $product['name'];
@@ -36,7 +37,7 @@ class OrderTemplate
                 </div>
                 LINE;
             }
-            
+
             $content .= <<<LINE
             <div class="row mt-4">
                 <div class="col-12 text-end">
@@ -44,7 +45,7 @@ class OrderTemplate
                 </div>
             </div>
             LINE;
-            
+
             $content .= <<<LINE
             <div class="row mt-3">
                 <div class="col-6"></div>
@@ -57,7 +58,7 @@ class OrderTemplate
                 </div>
             </div>
             LINE;
-            
+
         } else {
             $content .= <<<LINE
             <div class="row mt-4">
@@ -67,13 +68,13 @@ class OrderTemplate
             </div>
             LINE;
         }
-        
+
         // ✅ ПОДГОТОВКА значений ПЕРЕД heredoc
         $fioValue = htmlspecialchars($_POST['fio'] ?? '');
         $phoneValue = htmlspecialchars($_POST['phone'] ?? '');
         $emailValue = htmlspecialchars($_POST['email'] ?? '');
         $addressValue = htmlspecialchars($_POST['address'] ?? '');
-        
+
         // === ФОРМА ДОСТАВКИ ===
         $content .= <<<LINE
         <h3 class="mt-5 mb-3">Данные для доставки</h3>
@@ -112,7 +113,7 @@ class OrderTemplate
             </button>
         </form>
         LINE;
-        
+
         $baseTemplate = BaseTemplate::getTemplate();
         return sprintf($baseTemplate, 'Заказ - Тур Агенство', $content);
     }

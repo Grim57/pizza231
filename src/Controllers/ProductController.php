@@ -2,68 +2,57 @@
 
 namespace App\Controllers;
 
-use App\Models\Product;
-use App\Views\ProductTemplate;
+use App\Models\Product; // Модель использует ILoadStorage!
+use App\Views\ProductTemplate; // Убедитесь, что этот класс существует или создайте заглушку.
 use App\Config\Config;
-use App\Services\FileStorage;
-use App\Services\DatabaseStorage;
+use App\Services\FileStorage; // Реализует и ILoadStorage, и ISaveStorage.
+use App\Services\ProductDBStorage; // Реализует только ILoadStorage.
+// use App\Services\DatabaseStorage; // Этот класс больше не нужен.
+// use App\Services\IStorage; // Старый интерфейс не нужен.
 
 class ProductController
 {
     /**
      * Отображает список всех товаров или карточку одного товара.
-     * 
+     *
      * @param int|null $id ID товара для отображения карточки (если передан)
-     * @return string HTML-код для отображения
+     * @return string HTML-код для отображения или текст ошибки.
      */
-    public function get($id = null): string 
+    public function get($id = null): string
     {
-        // Создаем модель с внедренной зависимостью от сервиса хранения данных.
-        // Для этого контроллера ресурс - это файл с товарами.
-        $model = $this->createProductModel(Config::FILE_PRODUCTS);
-        
-        // Загружаем все данные через сервис, который находится внутри модели.
-        $data = $model->loadData();
-
-        // Если произошла ошибка чтения файла или файл пуст, $data будет null.
-        // Чтобы избежать ошибок в шаблонах, приводим null к пустому массиву.
-        if ($data === null) {
-            $data = [];
-        }
-
-        if ($id) {
-            // Проверяем, существует ли товар с таким ID в массиве данных.
-            // Вычитаем 1, так как в массиве индексы начинаются с 0, а ID с 1.
-            if (isset($data[$id - 1])) {
-                $cardData = $data[$id - 1];
-                return ProductTemplate::getCardTemplate($cardData);
-            } else {
-                // Обработка случая, когда товар не найден.
-                return "Товар с ID {$id} не найден.";
-            }
-        } else {
-            // Если ID не передан, отображаем список всех товаров.
-            return ProductTemplate::getAllTemplate($data);            
-        }
-    }
-
-    /**
-     * Вспомогательный метод для создания экземпляра Product с внедренной зависимостью.
-     * Избавляет от дублирования кода и связывает создание модели с конфигурацией приложения.
-     * 
-     * @param string $resourceName Имя файла или ресурса для работы с данными.
-     * @return Product Готовый к работе объект модели.
-     */
-    private function createProductModel(string $resourceName): Product
-    {
-        // В зависимости от настроек в Config.php, создаем нужный сервис хранения.
-        if (Config::STORAGE_TYPE == Config::TYPE_FILE) {
-            $serviceStorage = new FileStorage();
-        } else {
-            $serviceStorage = new DatabaseStorage();
-        }
-        
-        // Создаем и возвращаем модель, передавая ей сервис и имя ресурса.
-        return new Product($serviceStorage, $resourceName);
-    }
+         // Создаем модель с внедренной зависимостью от сервиса хранения данных.
+         // Тип сервиса зависит от константы в Config.
+         if (Config::STORAGE_TYPE == Config::TYPE_DB) {
+             // Для БД используем ProductDBStorage (только чтение)
+             // Имя ресурса - это имя таблицы из конфига.
+             $serviceStorage = new ProductDBStorage();
+             // Модель Product требует объект, реализующий ILoadStorage. ProductDBStorage его реализует.
+             // Передаем имя таблицы как "имя ресурса".
+             $model = new Product($serviceStorage, Config::TABLE_PRODUCTS);
+         } else {
+             // Для файлов используем FileStorage (и чтение, и запись)
+             // Имя ресурса - это путь к файлу из конфига.
+             $serviceStorage = new FileStorage();
+             // FileStorage реализует ILoadStorage, поэтому его можно передать в конструктор Product.
+             // Передаем путь к файлу как "имя ресурса".
+             $model = new Product($serviceStorage, Config::FILE_PRODUCTS);
+         }
+         
+         // Загружаем все данные через сервис, который находится внутри модели.
+         // Если данных нет (null), приводим к пустому массиву для безопасности.
+         $data = $model->loadData() ?: [];
+         
+         if ($id) {
+             // Проверяем, существует ли товар с таким ID в массиве данных.
+             // Вычитаем 1, так как в массиве индексы начинаются с 0, а ID с 1.
+             if (isset($data[$id - 1])) {
+                 return ProductTemplate::getCardTemplate($data[$id - 1]);
+             } else {
+                 return "Товар с ID {$id} не найден.";
+             }
+         } else {
+             // Если ID не передан, отображаем список всех товаров.
+             return ProductTemplate::getAllTemplate($data);
+         }
+     }
 }

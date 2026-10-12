@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controllers;
 
 class BasketController
@@ -29,7 +30,7 @@ class BasketController
         }
     }
 
-    /* 
+    /*
      * Очистка корзины
      */
     public function clear(): void
@@ -38,10 +39,10 @@ class BasketController
             session_start();
         }
         $_SESSION['basket'] = [];
-        
+
         // НОВАЯ СТРОКА: флеш-сообщение об очистке
         $_SESSION['flash'] = "Корзина успешно очищена.";
-        
+
         // Перенаправление обратно
         $prevUrl = $_SERVER['HTTP_REFERER'] ?? '/';
         header("Location: {$prevUrl}");

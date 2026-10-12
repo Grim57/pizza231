@@ -1,6 +1,6 @@
 {
     "name": "kkt/pizza231",
-    "description": "Пиццерия на PHP с использованием MVC",
+    "description": "Тур фирма на PHP с использованием MVC",
     "type": "project",
     "require": {
         "php": ">=7.4",
@@ -8,7 +8,10 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^11.5",
-        "nunomaduro/phpinsights": "^2.13"
+        "nunomaduro/phpinsights": "^2.13",
+        "friendsofphp/php-cs-fixer": "^3.94",
+        "phpstan/phpstan": "^2.1",
+        "phpmetrics/phpmetrics": "^2.9"
     },
     "autoload": {
         "psr-4": {

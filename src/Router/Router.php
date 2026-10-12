@@ -6,137 +6,89 @@ use App\Controllers\HomeController;
 use App\Controllers\ProductController;
 use App\Controllers\BasketController;
 use App\Controllers\OrderController;
+use App\Controllers\AuthController;
+use App\Controllers\RegisterController;
+use App\Controllers\ProfileController;
+use App\Controllers\SettingsController;
+use App\Controllers\ReviewController;
 
 class Router {
-    
-    // Базовый путь проекта
-    private const BASE_PATH = 'pizza221';
-    
-    // Текущий ID из URL
     private int $id = 0;
-    
-    /**
-     * Карта маршрутов - заменяет большой switch
-     */
-    private function getRoutes(): array 
-    {
+
+    private function getRoutes(): array {
         return [
-            'about' => [
-                'controller' => AboutController::class, 
-                'method' => 'get'
-            ],
-            'products' => [
-                'controller' => ProductController::class, 
-                'method' => 'get',
-                'withId' => true
-            ],
-            'basket' => [
-                'controller' => BasketController::class, 
-                'method' => 'add', 
-                'redirect' => true
-            ],
+            'about' => ['controller' => AboutController::class, 'method' => 'get'],
+            'products' => ['controller' => ProductController::class, 'method' => 'get', 'params' => ['id' => $this->id]],
+            'basket' => ['controller' => BasketController::class, 'method' => 'add', 'redirect' => true],
             'order' => [
-                'GET' => [
-                    'controller' => OrderController::class, 
-                    'method' => 'get'
-                ],
-                'POST' => [
-                    'controller' => OrderController::class, 
-                    'method' => 'create'
-                ],
+                'GET' => ['controller' => OrderController::class, 'method' => 'get'],
+                'POST' => ['controller' => OrderController::class, 'method' => 'create'],
             ],
-            'basket_clear' => [
-                'controller' => BasketController::class,
-                'method' => 'clear',                         
-                'redirect' => true
+            'basket_clear' => ['controller' => BasketController::class, 'method' => 'clear', 'redirect' => true],
+            
+            // Авторизация
+            'register' => [
+                'GET'  => ['controller' => RegisterController::class, 'method' => 'get'],
+                'POST' => ['controller' => RegisterController::class, 'method' => 'get'],
             ],
+            'login' => [
+                'GET'  => ['controller' => AuthController::class, 'method' => 'login'],
+                'POST' => ['controller' => AuthController::class, 'method' => 'loginPost'],
+            ],
+            'logout' => ['controller' => AuthController::class, 'method' => 'logout', 'redirect' => true],
+            'profile' => ['controller' => ProfileController::class, 'method' => 'get'],
+            'verify' => ['controller' => RegisterController::class, 'method' => 'verify'],
+            
+            // Настройки и отзывы
+            'settings' => [
+                'GET'  => ['controller' => SettingsController::class, 'method' => 'get'],
+                'POST' => ['controller' => SettingsController::class, 'method' => 'updateProfile'],
+            ],
+            'settings_profile' => ['controller' => SettingsController::class, 'method' => 'updateProfile', 'redirect' => true],
+            'reviews' => ['controller' => ReviewController::class, 'method' => 'add', 'redirect' => true],
         ];
     }
-    
-    /**
-     * Основной метод маршрутизации
-     */
-    public function route(string $url): string {
-        // Получаем путь из URL
-        $path = parse_url($url, PHP_URL_PATH);
-        
-        // Убираем базовый путь
-        $path = $this->stripBasePath($path);
-        
-        // Разбиваем на части
-        $pieces = array_values(array_filter(explode("/", $path)));
-        
-        // Получаем ресурс и параметр
-        $resource = $pieces[0] ?? '';
-        $this->id = isset($pieces[1]) ? intval($pieces[1]) : 0;
-        
-        // Текущий HTTP-метод
-        $method = $_SERVER['REQUEST_METHOD'];
 
-        // Получаем карту маршрутов
-        $routes = $this->getRoutes();
-        
-        // Если маршрут не найден — возвращаем дефолтный обработчик
-        if (!isset($routes[$resource])) {
-            return $this->handleDefault();
-        }
-    
-        $route = $routes[$resource];
-    
-        // Поддержка разных методов для одного ресурса (например, order: GET/POST)
-        if (isset($route[$method])) {
-            $route = $route[$method];
-        }
-    
-        return $this->executeRoute($route);
-    }
-
-    /**
-     * Выполняет маршрут: создаёт контроллер и вызывает метод
-     */
-    private function executeRoute(array $route): string 
-    {
+    private function executeRoute(array $route): string {
         $controller = new $route['controller']();
-        
-        // Формируем параметры для метода контроллера
-        $params = [];
-        if ($route['withId'] ?? false) {
-            $params = [$this->id];
-        }
-        
-        // Вызываем метод контроллера
+        $params = ($this->id) ? ['id' => $this->id] : [];
         $result = $controller->{$route['method']}(...$params);
     
-        // Обработка редиректа
         if ($route['redirect'] ?? false) {
-            $prevUrl = $_SERVER['HTTP_REFERER'] ?? '/'.self::BASE_PATH.'/';
+            $prevUrl = $_SERVER['HTTP_REFERER'] ?? '/';
             header("Location: {$prevUrl}");
-            exit;
+            exit();
         }
-        
         return $result ?? '';
     }
 
-    /**
-     * Обработчик маршрута по умолчанию
-     */
-    private function handleDefault(): string 
-    {
+    private function handleDefault(): string {
         return (new HomeController())->get();
     }
-    
-    /**
-     * Убирает базовый путь из начала строки
-     */
-    private function stripBasePath(string $path): string {
-        $basePath = '/' . self::BASE_PATH;
+
+    public function route(string $url): string {
+        $path = parse_url($url, PHP_URL_PATH);
+        $pieces = explode("/", trim($path, "/"));
+        $resource = $pieces[0] ?? '';
+        $this->id = (isset($pieces[1])) ? intval($pieces[1]) : 0;
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        $routes = $this->getRoutes();
         
-        if (strpos($path, $basePath) === 0) {
-            $path = substr($path, strlen($basePath));
+        if (isset($routes[$resource])) {
+            $routeConfig = $routes[$resource];
+            
+            if (isset($routeConfig[$method])) {
+                $route = $routeConfig[$method];
+            } elseif (isset($routeConfig['controller'])) {
+                $route = $routeConfig;
+            } else {
+                return $this->handleDefault();
+            }
+        } else {
+            return $this->handleDefault();
         }
-        
-        $path = ltrim($path, '/');
-        
-        return $path;
+    
+        return $this->executeRoute($route);
     }
 }

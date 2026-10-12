@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Views;
 
 class AboutTemplate extends BaseTemplate

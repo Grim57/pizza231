@@ -2,7 +2,7 @@ name: Мой первый Workflow
 
 on:
   push:
-    branches: [ april-trash ]
+    branches: [ main ]
 
 jobs:
   greeting:
